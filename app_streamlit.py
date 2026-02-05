@@ -40,45 +40,70 @@ st.markdown("""
 # Load Resources (OPTIMIZED)
 # ===============================
 @st.cache_resource
+@st.cache_resource
 def load_resources():
+    model = joblib.load('xgboost_tuned_v2.0.pkl')  # ✅ Using V2.0!
+    
+    # ✅ FIXED: Define ALL_FEATURES first
+    ALL_FEATURES = [
+        'Temperature
 
-    # Load model
-    model = joblib.load("xgboost_tuned_v2.0.pkl")
+    
+    # OPTIMIZATION 1: Load only needed columns
+    usecols = ['Hour', 'Clearsky GHI', 'Clearsky DNI', 'Clearsky DHI', 'Predicted_Energy'] + ALL_FEATURES
+    train_df = pd.read_csv("train.csv", usecols=usecols)
+    
+    # Calculate predictions & errors``
+    train_df["Predicted"] = model.predict(train_df[FEATURES])
+    train_df["Error"] = abs(train_df["Predicted"] - train_df["Predicted_Energy"])
+    train_df["Error_Pct"] = (train_df["Error"] / (train_df["Predicted_Energy"] + 0.1)) * 100
+    
+    # Error statistics by hour
+    error_stats = train_df.groupby("Hour").agg({
+        "Error": ['mean', 'std', 'count'],
+        "Error_Pct": 'mean'
+    }).round(2)
+    
+    # Defaults
+    DEFAULTS = train_df[FEATURES].median().to_dict()
+    
+    return model, train_df, error_stats, DEFAULTS
 
-    # Define features FIRST (before using)
-    FEATURES = [
+model, train_df, error_stats, DEFAULTS = load_resources()
+
+
+@st.cache_resource
+def load_resources():
+    model = joblib.load('xgboost_tuned_v2.0.pkl')  # ✅ Using V2.0!
+    
+    # ✅ ALL FEATURES LIST (complete)
+    ALL_FEATURES = [
         'Temperature', 'Aerosol Optical Depth', 'Clearsky DNI', 'Dew Point', 'Cloud Type',
         'Clearsky GHI', 'DHI', 'Clearsky DHI', 'DNI', 'Relative Humidity',
         'Pressure', 'Wind Speed', 'Wind Direction', 'Precipitable Water', 'zenith',
         'azimuth', 'elevation', 'Best_Tilt', 'Azimuth_Bin', 'Zenith_Bin',
         'Year', 'Month', 'Day', 'Hour', 'DayOfWeek', 'DayOfYear', 'WeekOfYear'
     ]
-
-    # Load training data
-    train_df = pd.read_csv("train.csv", usecols=FEATURES + ["Predicted_Energy"])
-
-    # Defaults (median)
-    DEFAULTS = train_df[FEATURES].median().to_dict()
-
-    # Error stats
-    train_df["Predicted"] = model.predict(train_df[FEATURES])
+    
+    # ✅ Load only needed columns (FIXED)
+    usecols = ['Hour', 'Clearsky GHI', 'Clearsky DNI', 'Clearsky DHI', 'Predicted_Energy'] + ALL_FEATURES
+    train_df = pd.read_csv("train.csv", usecols=usecols)
+    
+    # Calculate predictions & errors
+    train_df["Predicted"] = model.predict(train_df[ALL_FEATURES])
     train_df["Error"] = abs(train_df["Predicted"] - train_df["Predicted_Energy"])
-
-    train_df["Error_Pct"] = (
-        train_df["Error"] / (train_df["Predicted_Energy"] + 0.1)
-    ) * 100
-
-    ERROR_BY_HOUR = train_df.groupby("Hour")["Error"].mean().to_dict()
-    ERROR_PCT_BY_HOUR = train_df.groupby("Hour")["Error_Pct"].mean().to_dict()
-
-    error_stats = {
-        "err_hour": ERROR_BY_HOUR,
-        "err_pct": ERROR_PCT_BY_HOUR
-    }
-
-    return model, train_df, FEATURES, DEFAULTS, error_stats
-
-model, train_df, FEATURES, DEFAULTS, error_stats = load_resources()
+    train_df["Error_Pct"] = (train_df["Error"] / (train_df["Predicted_Energy"] + 0.1)) * 100
+    
+    # Error statistics by hour (IMPROVED)
+    error_stats = train_df.groupby("Hour").agg({
+        "Error": ['mean', 'std', 'count'],
+        "Error_Pct": 'mean'
+    }).round(2)
+    
+    # Defaults (median values)
+    DEFAULTS = train_df[ALL_FEATURES].median().to_dict()
+    
+    return model, train_df, ALL_FEATURES, error_stats, DEFAULTS
 
 
 # ===============================  
