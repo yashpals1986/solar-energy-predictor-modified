@@ -46,7 +46,12 @@ def load_resources():
     
     # ✅ FIXED: Define ALL_FEATURES first
     ALL_FEATURES = [
-        'Temperature
+        'Temperature', 'Aerosol Optical Depth', 'Clearsky DNI', 'Dew Point', 'Cloud Type',
+        'Clearsky GHI', 'DHI', 'Clearsky DHI', 'DNI', 'Relative Humidity',
+        'Pressure', 'Wind Speed', 'Wind Direction', 'Precipitable Water', 'zenith',
+        'azimuth', 'elevation', 'Best_Tilt', 'Azimuth_Bin', 'Zenith_Bin',
+        'Year', 'Month', 'Day', 'Hour', 'DayOfWeek', 'DayOfYear', 'WeekOfYear'
+    ]
 
     
     # OPTIMIZATION 1: Load only needed columns
