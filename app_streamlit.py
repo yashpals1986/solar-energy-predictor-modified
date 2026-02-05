@@ -54,7 +54,7 @@ def load_resources():
 
     
     # OPTIMIZATION 1: Load only needed columns
-    usecols = ['Hour', 'Clearsky GHI', 'Clearsky DNI', 'Clearsky DHI', 'Predicted_Energy'] + ALL_FEATURES
+    usecols = list(set(['Predicted_Energy'] + ALL_FEATURES))
     train_df = pd.read_csv("train.csv", usecols=usecols)
     
     # Calculate predictions & errors``
@@ -139,7 +139,7 @@ if st.sidebar.button("🔮 Predict Energy Production", use_container_width=True)
         st.metric(
             "⚡ Predicted Energy Production",
             f"{pred:.2f} kWh",
-            delta=f"±{error_stats.loc[hour, ('Error', 'mean')]:.1f} kWh"
+            delta=f"±{error_stats.loc.get(hour, {}).get(('Error','mean'), 0):.1f} kWh"
         )
     
     with col2:
@@ -152,7 +152,7 @@ if st.sidebar.button("🔮 Predict Energy Production", use_container_width=True)
     # ===============================  
     # Confidence Interval (IMPROVEMENT 4: Error Bands)
     # ===============================
-    error_mean = error_stats.loc[hour, ('Error', 'mean')]
+    error_mean = error_stats.loc.get(hour, {}).get(('Error','mean'), 0)
     error_std = error_stats.loc[hour, ('Error', 'std')]
     
     st.info(f"""
