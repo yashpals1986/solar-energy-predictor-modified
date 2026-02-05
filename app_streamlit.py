@@ -58,7 +58,7 @@ def load_resources():
     train_df = pd.read_csv("train.csv", usecols=usecols)
     
     # Calculate predictions & errors``
-    train_df["Predicted"] = model.predict(train_df[FEATURES])
+    train_df["Predicted"] = model.predict(train_df[ALL_FEATURES])
     train_df["Error"] = abs(train_df["Predicted"] - train_df["Predicted_Energy"])
     train_df["Error_Pct"] = (train_df["Error"] / (train_df["Predicted_Energy"] + 0.1)) * 100
     
@@ -69,7 +69,7 @@ def load_resources():
     }).round(2)
     
     # Defaults
-    DEFAULTS = train_df[FEATURES].median().to_dict()
+    DEFAULTS = train_df[ALL_FEATURES].median().to_dict()
     
     return model, train_df, error_stats, DEFAULTS
 
@@ -99,7 +99,7 @@ with col2:
     minute = st.number_input("Minute", 0, 59, 0, key="minute")
 time_display = f"{hour:02d}:{minute:02d}"
 
-# Top 10 features (IMPROVEMENT 2: Grouped sections)
+# Top 10 ALL_FEATURES (IMPROVEMENT 2: Grouped sections)
 st.sidebar.subheader("🌞 Solar Irradiance")
 ghi = st.sidebar.number_input("Clearsky GHI (W/m²)", 0.0, 1200.0, 800.0, step=0.1)
 dni = st.sidebar.number_input("Clearsky DNI (W/m²)", 0.0, 1200.0, 850.0, step=0.1)
@@ -111,7 +111,7 @@ zenith = st.sidebar.slider("Zenith Angle (°)", 0.0, 180.0, 30.0, 0.1)
 elevation = st.sidebar.slider("Elevation (°)", -90.0, 90.0, 60.0, 0.1)
 azimuth = st.sidebar.slider("Azimuth (°)", 0.0, 360.0, 180.0, 0.1)
 
-st.sidebar.subheader("🔧 Binning Features")
+st.sidebar.subheader("🔧 Binning ALL_FEATURES")
 azimuth_bin = st.sidebar.number_input("Azimuth Bin", 0.0, 360.0, 180.0, step=0.5)
 zenith_bin = st.sidebar.number_input("Zenith Bin", 0.0, 180.0, 30.0, step=0.5)
 
@@ -127,7 +127,7 @@ if st.sidebar.button("🔮 Predict Energy Production", use_container_width=True)
         "Azimuth_Bin": azimuth_bin, "Zenith_Bin": zenith_bin
     })
     
-    input_df = pd.DataFrame([input_dict])[FEATURES]
+    input_df = pd.DataFrame([input_dict])[ALL_FEATURES]
     pred = model.predict(input_df)[0]
     
     # ===============================  
@@ -205,7 +205,7 @@ if st.sidebar.button("🔮 Predict Energy Production", use_container_width=True)
     # ===============================  
     # Feature Importance (IMPROVEMENT 6: SHAP-style)
     # ===============================
-    st.subheader("🎯 Top 10 Most Important Features")
+    st.subheader("🎯 Top 10 Most Important ALL_FEATURES")
     
     # Calculate feature importance from errors
     feature_importance = pd.DataFrame({
